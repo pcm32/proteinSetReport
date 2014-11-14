@@ -1,0 +1,16 @@
+Package: proteinSetReport
+Type: Package
+Title: A set of functions to ease the generation of protein set reports.
+Version: 0.0.1
+Date: 2014-11-14
+Author: Pablo Moreno
+Maintainer: Pablo Moreno <pcm32@cam.ac.uk>
+Description: More about what it does (maybe more than one line)
+License: GPL-2
+Depends:
+    data.table,
+    RDAVIDWebService,
+    ReactomePA,
+    stringr,
+    pathview,
+    biomaRt
