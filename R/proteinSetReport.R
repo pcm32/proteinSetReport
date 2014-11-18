@@ -103,9 +103,12 @@ getENTREZGIFromUNIPROTIDs<-function(martUniprot,martEnsembl,uniprotIDs) {
 enrichmentAnalysisREACTOME<-function(giList,gi2GeneName=list()) {
   enrichPathway(gene = giList, organism = "human", pAdjustMethod = "fdr", readable = F, pvalueCutoff = 0.9, qvalueCutoff = 0.9)->rpa
   data.table(rpa@result)->res
+  # deals with certain descriptions carrying non UTF-8 characters.
+  res[,Description:=iconv(Description, "UTF-8", "UTF-8",sub=' '),by=ID]
   if(length(gi2GeneName)>0) {
     res[,GeneNames:=paste( gi2GeneName[gi %in% unlist(strsplit(as.character(geneID),split = "/")),]$GeneName, collapse=", "),by=ID]
   }
+  return(res)
 }
 
 #' Parse DAVID KEGG Pathway Term
