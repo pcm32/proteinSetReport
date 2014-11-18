@@ -71,6 +71,26 @@ getENTREZGIFromENSEMBLIDs<-function(mart,ensemblIDs) {
                      key=c(field))
 }
 
+#' Get ENTREZ GI From ENSEMBL IDs
+#' 
+#' This function uses a biomart connection to UniProt to fetch proteins to ensembl gene ids, and a
+#' ENSEMBL biomart to fetch ENSEMBL gene ids to ENTREZ GI.
+#' 
+#' @param martUniprot The uniprot biomart instance to use
+#' @param martEnsembl The ensembl biomart instance to use
+#' @param ensemblIDs A vector of UniProt IDs to get ENTREZ GIs
+#' 
+#' @return A data.table view of the biomart result, with \code{accession} and \code{entrezgene}.
+getENTREZGIFromUNIPROTIDs<-function(martUniprot,martEnsembl,uniprotIDs) {
+  field<-'accession'
+  uniprot2Ensembl<-obtainDataFromMart(mart=martUniprot,filters=c(field),
+                      values=uniprotIDs,attributes=c(field,'ensembl_id'),key=c('ensembl_id'))
+  
+  ens2gi<-getENTREZGIFromENSEMBLIDs(mart = martEnsembl, ensemblIDs = unique(uniprot2Ensembl$ensembl_id))
+  
+  ens2gi[uniprot2Ensembl]
+}
+
 #' Enrichment Analysis REACTOME
 #' 
 #' Runs enrichment analysis using the ReactomePA.
