@@ -45,7 +45,7 @@ enrichmentAnalysisDAVID<-function(davidEmail,proteinList,listName,prot2GeneName=
   setnames(dataInF.dt,f@names)
   # We add the categories names instead of the per session category indexes.
   dataInF.dt[,Category:=categoryNames[as.numeric(as.character(Category))],][,PValue:=as.numeric(as.character(PValue)),]
-  dataInF.dt[,Term:=as.character(Term),][,Genes:=as.character(Genes),]
+  dataInF.dt[,Term:=as.character(Term),][,Genes:=as.character(Genes),][,FDR:=as.numeric(as.character(FDR)),]
   
   if(length(prot2GeneName)>0) {
     # add GeneNames if the dictionary is provided.
