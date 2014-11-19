@@ -111,6 +111,22 @@ enrichmentAnalysisREACTOME<-function(giList,gi2GeneName=list()) {
   return(res)
 }
 
+#' Enrichment Analysis REACTOME WS
+#' 
+#' Runs enrichment analysis using the REACTOME REST web service.
+#' 
+#' @param proteins A vector of UniProt identifiers to run the analysis for
+#' 
+#' @return The Reactome enrichment analysis for the vector of proteins given, as a data.table
+enrichmentAnalysisREACTOMEWS<-function(proteins) {
+  REACTOMEEnrichmentAnalysis(identifiers = proteins)->res
+  data.table(res,key='Pathway.identifier')->res
+  setnames(res,old=c('Pathway.identifier','Pathway.name','Entities.pValue','Entities.FDR','Submitted.entities.found'),
+           new=c('ID','Description','pvalue','qvalue','geneID'))
+  res[,ID:=as.character(ID),]
+  return(res)
+} 
+
 #' Parse DAVID KEGG Pathway Term
 #' 
 #' Parses a "term" from the result of a DAVID enrichment analysis, as produced by function \code{enrichmentAnalysisDAVID},

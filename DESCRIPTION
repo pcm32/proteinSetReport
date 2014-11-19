@@ -13,4 +13,5 @@ Depends:
     ReactomePA,
     stringr,
     pathview,
-    biomaRt
+    biomaRt,
+    Reactome.Analysis.REST
