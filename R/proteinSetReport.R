@@ -189,7 +189,7 @@ makeLinkForDB<-function(entry,urlPrefix,urlPostfix="",dict,type) {
   label<-entry
   if(is.data.frame(dict)) {
     if(length(entry)>1) {
-      label<-dict$name[dict$entry %in% entry]
+      label<-dict$name[match(entry,dict$entry)]
     } else {
       label<-dict$name[dict$entry==entry] 
     }
