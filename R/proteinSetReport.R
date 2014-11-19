@@ -127,6 +127,30 @@ enrichmentAnalysisREACTOMEWS<-function(proteins) {
   return(res)
 } 
 
+#' Choose Enrichment Rows
+#' 
+#' Processes an enrichment analysis data.table (which contains a pvalue and qvalue rows)
+#' to produce a selection of the rows, considering that a very high number of rows would
+#' be problematic for most people in an HTML report.
+#' 
+#' @param dataTable A data.table object holding results from enrichment, such as from
+#' \code{enrichmentAnalysisREACTOMEWS} or \code{enrichmentAnalysisDAVID}.
+#' @param maxDefault The maximum number of rows to use if there are many significant results.
+#' 
+#' @return the shortened version of the provided dataTable.
+chooseEnrichmentRows<-function(dataTable,maxDefault=30) {
+  if(nrow(dataTable[pvalue<0.05,])>maxDefault) {
+    if(nrow(dataTable[qvalue<0.05,])>maxDefault) {
+      dataTable[1:maxDefault,]->dataTable
+    } else {
+      dataTable[qvalue<0.05,]->dataTable
+    }
+  } else {
+    dataTable[1:min(maxDefault,nrow(dataTable)),]->dataTable
+  }
+  return(dataTable)
+}
+
 #' Parse DAVID KEGG Pathway Term
 #' 
 #' Parses a "term" from the result of a DAVID enrichment analysis, as produced by function \code{enrichmentAnalysisDAVID},
