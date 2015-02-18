@@ -190,6 +190,23 @@ parseDavidKEGGPathwayTerm<-function(term) {
   return(list(species=NA,pathID=NA,pathName=NA))
 }
 
+#' Run piano GSEA analysis
+#' 
+#' Runs the piano gene set enrichment analysis for a set of proteins and accompanying p-values.
+#' 
+#' @param geneProtIdent A list of proteins or gene identifiers, which matches the given gene set collection.
+#' @param pvalues A list of p-values, of the same lenght as the protein list.
+#' @param foldChanges 
+#' @param pianoGSC A piano formatted gene set collection
+#' 
+#' 
+#' @return A piano GSEA result object.
+runPianoGSEAnalysis<-function(geneProtIdent,pvalues,foldChanges=NULL,pianoGSC,minGSSize=5,maxGSSIze=300) {
+  data.frame(pvalues=pvalues)->pvaluesDF
+  rownames(pvaluesDF)<-geneProtIdent
+  runGSA(geneLevelStats = pvaluesDF,directions = foldChanges, gsc=pianoGSC,gsSizeLim=c(minGSSize,maxGSSIze))
+}
+
 #' Make link for DB
 #' 
 #' Lower level function of the link making series. 
