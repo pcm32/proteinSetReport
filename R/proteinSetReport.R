@@ -91,6 +91,27 @@ getENTREZGIFromUNIPROTIDs<-function(martUniprot,martEnsembl,uniprotIDs) {
   ens2gi[uniprot2Ensembl,allow.cartesian=TRUE]
 }
 
+#' Get UniProt Protein Names
+#' 
+#' Retrieves the UniProt Gene name for the provided ENSEMBL identifiers. The ENSEMBL
+#' Biomart data set is choosen through the species parameter. Multiple names are collapsed
+#' into a comma separated list, so that ENSEMBL gene ids are unique.
+#' 
+#' @param ensemblIDs The identifiers to search names for. These should belong to the
+#' data set specifief by \code{species}
+#' @param species The name of the ENSEMBL Biomart data set to use
+#' 
+#' @return A data.table with rows \code{ensembl_gene_id} and \code{uniprot_genename}. 
+getUniprotProteinNames<-function(ensemblIDs,species="mmusculus_gene_ensembl") {
+  bm <- useMart("ensembl")
+  bm <- useDataset(species, mart=bm)
+  # Get ensembl gene ids and GO terms
+  eg2Name <- data.table(getBM(mart=bm, attributes=c('ensembl_gene_id','uniprot_genename'), filters = c('ensembl_gene_id'), values = ensemblIDs))
+  eg2Name[,uniprot_genename:=gsub(";","",uniprot_genename),]
+  eg2Name[,list(name=paste(unique(uniprot_genename),collapse=", ")),by=ensembl_gene_id]->CvsT_names
+}
+
+
 #' Enrichment Analysis REACTOME
 #' 
 #' Runs enrichment analysis using the ReactomePA.
