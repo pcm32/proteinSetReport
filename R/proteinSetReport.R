@@ -247,6 +247,24 @@ mergeGenesToGSARes<-function(gsaRes,padjCutoff=0.5,species=NA) {
   }
   mergedWithGenes[order(as.numeric(mergedWithGenes$'p adj (non-dir.)')),]
 }
+
+#' Convert GMT Bader Lab For Piano
+#'
+#' Adapts the a Bader Lab (http://download.baderlab.org/EM_Genesets/) gene set file (gmt)
+#' so that the gene set can be used by Piano.
+#' 
+#' @param pathToGMTFile The path to the .gmt file obtained from Bader lab. The file needs 
+#' to be ended with .gmt extension.
+#' 
+#' @return the path to the converted file (same file, but .gmt extension changed to .piano.gmt)
+convertBaderLabGMTForPiano<-function(pathToGMTFile) {
+  readLines(pathToGMTFile)->gmtLines
+  gsub("(.*?)%(.*?)%(.*?)\t(.*?)\t(.*?)","\'\\1::\\3\'\t\\2\t\\5",perl = TRUE,gmtLines)->gmtLinesMod
+  gsub("\\.gmt$","\\.piano\\.gmt",pathToGMTFile)->outPath
+  writeLines(gmtLinesMod,con=outPath)
+  return(outPath)
+}
+
 #' Make link for DB
 #' 
 #' Lower level function of the link making series. 
