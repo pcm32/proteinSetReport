@@ -207,6 +207,46 @@ runPianoGSEAnalysis<-function(geneProtIdent,pvalues,foldChanges=NULL,pianoGSC,mi
   runGSA(geneLevelStats = pvaluesDF,directions = foldChanges, gsc=pianoGSC,gsSizeLim=c(minGSSize,maxGSSIze))
 }
 
+#' Merge Genes to GSA Res
+#' 
+#' Piano GSA result summary table doesn't include the detail of which genes in the query are
+#' part of each enriched category/group. This method joins the summary to the genes that belong
+#' to each category. It can cut the list if a cut-off for the adjusted p-value is given.
+#' 
+#' @param gsaRes A piano GSA result object.
+#' @param padjCutoff A cut-off for rows to show in the final table; defaults to \code{0.5}.
+#' @param species The ensembl biomart data set name for retrieving names for the genes. This will only work
+#' if the GSA piano method was executed with a data set where the identifier for genes are ENSEMBL IDs.
+mergeGenesToGSARes<-function(gsaRes,padjCutoff=0.5,species=NA) {
+  data.table(GSAsummaryTable(gsaRes))->tb.dt
+  data.table(category=names(gsaRes$gsc),
+             geneIdents=sapply(gsaRes$gsc,function(x) paste(x,collapse=", ")))->category2genes
+  setkey(tb.dt,Name)
+  setkey(category2genes,category)
+  tb.dt[category2genes]->mergedWithGenes
+  padjCutoff<-0.5
+  
+  selection<-rep(FALSE,times = nrow(mergedWithGenes))
+  
+  cols<-c('p adj (dist.dir.up)', 'p adj (dist.dir.dn)', 'p adj (non-dir.)', 'p adj (mix.dir.up)', 'p adj (mix.dir.dn)')
+  
+  for(col in cols) {
+    if(col %in% colnames(mergedWithGenes)) {
+      selection<-(selection | mergedWithGenes[[col]] <= padjCutoff)
+    }
+  }
+
+  
+  if(!is.na(species)) {
+    unique(unlist(strsplit(mergedWithGenes$geneIdents[selection],split = ", ")))->uniqueENSEMBLIDs
+    getUniprotProteinNames(uniqueENSEMBLIDs,species)->ensemblIds2GeneNames
+  
+    mergedWithGenes[,GeneNames:=paste(
+      ensemblIds2GeneNames[ensembl_gene_id %in% unlist(strsplit(geneIdents,split = ", "))]$name,
+      collapse = ", "),by=Name]
+  }
+  mergedWithGenes[order(as.numeric(mergedWithGenes$'p adj (non-dir.)')),]
+}
 #' Make link for DB
 #' 
 #' Lower level function of the link making series. 
