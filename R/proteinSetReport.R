@@ -88,7 +88,7 @@ getENTREZGIFromUNIPROTIDs<-function(martUniprot,martEnsembl,uniprotIDs) {
   
   ens2gi<-getENTREZGIFromENSEMBLIDs(mart = martEnsembl, ensemblIDs = unique(uniprot2Ensembl$ensembl_id))
   
-  ens2gi[uniprot2Ensembl]
+  ens2gi[uniprot2Ensembl,allow.cartesian=TRUE]
 }
 
 #' Enrichment Analysis REACTOME
