@@ -15,6 +15,60 @@ obtainDataFromMart<-function(mart,filters,attributes,values,key) {
   return(data.table(getBM(attributes=attributes,filters=filters,values=values,mart=mart,uniqueRows=T),key=key))
 }
 
+#' Uniprot entry source
+#' 
+#' Given a set of UniProt identifiers, it return the same list indicating whether the entries
+#' belong to Swissprot or TrEMBL.
+#' 
+#' @param unimart The UniProt biomart to use for this operation
+#' @param prots A vector/list of proteins to query for
+#' 
+#' @return A data.table containing the identifier - source database mapping (Accession,Status)
+uniprotEntrySource<-function(unimart,prots) {
+  return(obtainDataFromMart(mart = unimart,filters=c("accession"),values = prots, attributes = c("accession","entry_type"), key = c("accession") ))
+}
+
+#' chooseSilacProtein
+#' 
+#' Given the multiple proteins available per line on a SILAC result, choose among those with the higher amount o
+#' f peptides,
+#' the one that is best annotated (Swissprot vs TrEMBL)
+#' 
+#' @param dataTable The SILAC data set.
+#' @param colForProtsAccessions The column name where the protein accessions are found. Defaults to "Protein_IDs".
+#' @param colForPeptideCounts The column name where peptide counts per protein are found. Defaults to "Peptide_counts_unique".
+#' @param nameForNewCol The name for the new column that will contain the chosen accession. Defaults to "Blessed_Protein_ID".
+#' @param separator The token separating proteins and counts in their respective column. Defaults to ";"
+#' 
+#' @return Same provided dataTable with the additional column.
+chooseSilacProtein<-function(dataTable,colForProtsAccessions="Protein_IDs",
+                             colForPeptideCounts="Peptide_counts_unique",
+                             nameForNewCol="Blessed_Protein_ID",
+                             separator=";") {
+  useMart(biomart = "unimart",dataset = "uniprot")->unimart
+  # obtain dictionary of db source
+  accessionCol<-substitute(colForProtsAccessions)
+  uniprotEntrySource(unimart=unimart,prots=dataTable[,unique(unlist(strsplit(get(accessionCol),";"))),])->dict
+  
+  pepCol<-substitute(colForPeptideCounts)
+  
+  chooseProt<-function(pepCol,accessionCol,dict) {
+    pepCount<-unlist(strsplit(pepCol,separator))
+    accession<-unlist(strsplit(accessionCol,separator))
+    maxCount<-max(pepCount)
+    
+    selectionCount<-accession[pepCount==maxCount]
+    selectionSwissProt<-selectionCount[selectionCount %in% dict[entry_type=="Swiss-Prot",accession,]]
+    if(length(selectionSwissProt)>0) {
+      return(selectionSwissProt[1])
+    } else {
+      return(selectionCount[1])
+    }
+  }
+  dataTable[,blessedProt:=chooseProt(get(pepCol),get(accessionCol),dict),by=accessionCol]
+  return(dataTable)
+}
+
 #' Enrichment analysis DAVID
 #' 
 #' \code{enrichmentAnalysisDAVID} uses the \code{RDAVIDWebService} package to execute an
