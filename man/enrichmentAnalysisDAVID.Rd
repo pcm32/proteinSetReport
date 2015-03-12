@@ -4,7 +4,8 @@
 \title{Enrichment analysis DAVID}
 \usage{
 enrichmentAnalysisDAVID(davidEmail, proteinList, listName,
-  prot2GeneName = list())
+  prot2GeneName = list(), useGO = TRUE, usePathways = TRUE,
+  useDisease = TRUE, useDomains = TRUE)
 }
 \arguments{
 \item{davidEmail}{The email registered at DAVID to be able to use their web service.}
@@ -15,6 +16,18 @@ enrichmentAnalysisDAVID(davidEmail, proteinList, listName,
 
 \item{prot2GeneName}{An optional dictionary (in a data.table) with prot and GeneName columns,
 used to translate the uniprot accessions to Gene names.}
+
+\item{useGO}{Boolean, whether to use the Gene Ontology categories for the enrichment analysis.
+Defaults to \code{TRUE}.}
+
+\item{usePathways}{Boolean, whether to use pathways controlled vocabularies: KEGG Pathways,
+Reactome, Reactome Interaction, Panther Pathways, BioCarta, BBID. Defaults to \code{TRUE}.}
+
+\item{useDisease}{Boolean, whether to use disease related controlled vocabularies:
+Genetic Association DB Disease, OMIM.}
+
+\item{useDomains}{Boolean, whether to use InterPro domains for the enrichment analysis.
+Defaults to \code{TRUE}.}
 }
 \value{
 the resulting enrichment analysis (functional chart) from DAVID, as a data.table.

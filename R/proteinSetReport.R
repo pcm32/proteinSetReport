@@ -25,14 +25,34 @@ obtainDataFromMart<-function(mart,filters,attributes,values,key) {
 #' @param listName A label for the list.
 #' @param prot2GeneName An optional dictionary (in a data.table) with prot and GeneName columns,
 #'        used to translate the uniprot accessions to Gene names.
-#' @return the resulting enrichment analysis (functional chart) from DAVID, as a data.table.
-enrichmentAnalysisDAVID<-function(davidEmail,proteinList,listName,prot2GeneName=list()) {
+#' @param useGO Boolean, whether to use the Gene Ontology categories for the enrichment analysis.
+#'        Defaults to \code{TRUE}.
+#' @param usePathways Boolean, whether to use pathways controlled vocabularies: KEGG Pathways, 
+#' Reactome, Reactome Interaction, Panther Pathways, BioCarta, BBID. Defaults to \code{TRUE}.
+#' @param useDisease Boolean, whether to use disease related controlled vocabularies: 
+#' Genetic Association DB Disease, OMIM.
+#' @param useDomains Boolean, whether to use InterPro domains for the enrichment analysis. 
+#' Defaults to \code{TRUE}.
+#' 
+#' @return the resulting enrichment analysis (functional chart) from DAVID, as a data.table. 
+enrichmentAnalysisDAVID<-function(davidEmail,proteinList,listName,prot2GeneName=list(),
+                                  useGO=TRUE,usePathways=TRUE,useDisease=TRUE,useDomains=TRUE) {
   david<-DAVIDWebService$new(email=davidEmail)
-  setAnnotationCategories(david, c("GOTERM_BP_ALL","GOTERM_MF_ALL","GOTERM_CC_ALL",
-                                   "BBID","BIOCARTA","EC_NUMBER",
-                                   "KEGG_PATHWAY","REACTOME_PATHWAY","REACTOME_INTERACTION","PANTHER_PATHWAY",
-                                   "GENETIC_ASSOCIATION_DB_DISEASE","OMIM_DISEASE","INTERPRO"
-  ))
+  categories<-c()
+  if(useGO) {
+    categories<-c("GOTERM_BP_ALL","GOTERM_MF_ALL","GOTERM_CC_ALL")
+  }
+  if(usePathways) {
+    categories<-c(categories,"BBID","BIOCARTA","EC_NUMBER",
+                  "KEGG_PATHWAY","REACTOME_PATHWAY","REACTOME_INTERACTION","PANTHER_PATHWAY")
+  }
+  if(useDisease) {
+    categories<-c(categories,"GENETIC_ASSOCIATION_DB_DISEASE","OMIM_DISEASE")
+  }
+  if(useDomains) {
+    categories<-c(categories,"INTERPRO")
+  }
+  setAnnotationCategories(david, categories)
   result<-addList(david,inputIds=proteinList,listName=listName,idType="UNIPROT_ACCESSION")
   getFunctionalAnnotationChart(david)->f
   dataInF<-matrix(nrow = nrow(f), ncol = ncol(f))
@@ -204,6 +224,10 @@ parseDavidKEGGPathwayTerm<-function(term) {
 runPianoGSEAnalysis<-function(geneProtIdent,pvalues,foldChanges=NULL,pianoGSC,minGSSize=5,maxGSSIze=300) {
   data.frame(pvalues=pvalues)->pvaluesDF
   rownames(pvaluesDF)<-geneProtIdent
+  if(!is.null(foldChanges)) {
+    data.frame(foldChanges=foldChanges)->foldChanges
+    rownames(foldChanges)<-geneProtIdent
+  }
   runGSA(geneLevelStats = pvaluesDF,directions = foldChanges, gsc=pianoGSC,gsSizeLim=c(minGSSize,maxGSSIze))
 }
 
