@@ -28,6 +28,42 @@ uniprotEntrySource<-function(unimart,prots) {
   return(obtainDataFromMart(mart = unimart,filters=c("accession"),values = prots, attributes = c("accession","entry_type"), key = c("accession") ))
 }
 
+#' obtain UniProt Links
+#' 
+#' Produces a list of uniprot identifiers for the given search field and values.
+#' The search field can be ENSEMBL_Transcripts, ENSEMBL_Genes, and then the values
+#' would be vectors containing either transcript identifiers or genes.
+#' 
+#' @param mart The biomart connection to use.
+#' @param field The field to query for.
+#' @param values A vector with the identifiers to query for.
+#' 
+#' @return A data.table containing the query to uniprot accession (and the database they belong to)
+obtainUniprotLinks<-function(mart,field,values) {
+  obtainDataFromMart(mart=mart,filters=c(field),
+                     attributes=c(field,'uniprot_swissprot_accession'),
+                     values=values,
+                     key=c(field))->uniprotSPLinks
+  setnames(uniprotSPLinks,old=c('uniprot_swissprot_accession'),new=c('uniprot'))
+  uniprotSPLinks$db<-"SwissProt"
+  
+  uniprotTranscriptLinks<-0
+  # check whether uniprotSPLinks$ensembl_transcript_id[uniprotSPLinks$uniprot_swissprot_accession==''] is not empty
+  if(length(uniprotSPLinks$field[uniprotSPLinks$uniprot==''])>0) {
+    obtainDataFromMart(mart=ensemblBM,filters=c(field),
+                       attributes=c(field,'uniprot_sptrembl'),
+                       values=unique(uniprotSPLinks$field[uniprotSPLinks$uniprot=='']),
+                       key=c(field))->uniprotTREMBLLinks
+    setnames(uniprotTREMBLLinks,old=c('uniprot_sptrembl'),new=c('uniprot'))
+    uniprotTREMBLLinks$db<-"TrEMBL"
+    rbindlist(list(uniprotSPLinks[uniprot!='',],uniprotTREMBLLinks[uniprot!='']))->uniprotTranscriptLinks
+  } else {
+    uniprotSPLinks[uniprot!='',]->uniprotTranscriptLinks
+  }
+  setkey(uniprotTranscriptLinks,uniprot) 
+  return(uniprotTranscriptLinks)
+}
+
 #' chooseSilacProtein
 #' 
 #' Given the multiple proteins available per line on a SILAC result, choose among those with the higher amount o
