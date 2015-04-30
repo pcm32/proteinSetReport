@@ -89,7 +89,7 @@ chooseSilacProtein<-function(dataTable,colForProtsAccessions="Protein_IDs",
   pepCol<-substitute(colForPeptideCounts)
   
   chooseProt<-function(pepCol,accessionCol,dict) {
-    pepCount<-unlist(strsplit(pepCol,separator))
+    pepCount<-as.numeric(unlist(strsplit(pepCol,separator)))
     accession<-unlist(strsplit(accessionCol,separator))
     maxCount<-max(pepCount)
     
