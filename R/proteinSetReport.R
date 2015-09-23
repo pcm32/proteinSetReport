@@ -41,10 +41,10 @@ uniprotEntrySource<-function(unimart,prots) {
 #' @return A data.table containing the query to uniprot accession (and the database they belong to)
 obtainUniprotLinks<-function(mart,field,values) {
   obtainDataFromMart(mart=mart,filters=c(field),
-                     attributes=c(field,'uniprot_swissprot_accession'),
+                     attributes=c(field,'uniprot_swissprot'),
                      values=values,
                      key=c(field))->uniprotSPLinks
-  setnames(uniprotSPLinks,old=c('uniprot_swissprot_accession'),new=c('uniprot'))
+  setnames(uniprotSPLinks,old=c('uniprot_swissprot'),new=c('uniprot'))
   uniprotSPLinks$db<-"SwissProt"
   
   uniprotTranscriptLinks<-0
@@ -125,9 +125,9 @@ chooseSilacProtein<-function(dataTable,colForProtsAccessions="Protein_IDs",
 #' Defaults to \code{TRUE}.
 #' 
 #' @return the resulting enrichment analysis (functional chart) from DAVID, as a data.table. 
-enrichmentAnalysisDAVID<-function(davidEmail,proteinList,listName,prot2GeneName=list(),
+enrichmentAnalysisDAVID<-function(davidEmail,proteinList,listName,prot2GeneName=list(),url,
                                   useGO=TRUE,usePathways=TRUE,useDisease=TRUE,useDomains=TRUE) {
-  david<-DAVIDWebService$new(email=davidEmail)
+  david<-DAVIDWebService$new(email=davidEmail,url=url)
   categories<-c()
   if(useGO) {
     categories<-c("GOTERM_BP_ALL","GOTERM_MF_ALL","GOTERM_CC_ALL")
